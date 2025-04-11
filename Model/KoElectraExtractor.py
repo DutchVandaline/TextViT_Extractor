@@ -1,5 +1,7 @@
 import torch.nn as nn
 import torch
+from transformers import ElectraModel
+
 
 class KoElectraExtractor(nn.Module):
     def __init__(self, pretrained_model="monologg/koelectra-small-discriminator", dropout=0.1):

@@ -1,0 +1,47 @@
+import re
+import torch
+import torch.nn as nn
+from transformers import AutoTokenizer, ElectraModel
+from Model.KoElectraExtractor import KoElectraExtractor
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+model = KoElectraExtractor().to(device)
+model_path = "Checkpoints/best_kobert_f1.pt"
+model.load_state_dict(torch.load(model_path, map_location=device))
+model.eval()
+
+tokenizer = AutoTokenizer.from_pretrained("monologg/koelectra-small-discriminator")
+
+news_article = """
+경기 광명시 신안산선 지하 터널 공사장 붕괴 사고로 고립된 작업자(계측 직원) 2명에 대한 구조 작업을 벌이고 있는 소방 특수대응단이 이중 1명의 목소리가 들릴 정도의 거리까지 접근한 것으로 파악됐다. 다만 현장 깊이가 30여m에 달하고 주변 안전이 확보되지 못한 상태라, 구조 작업은 어려움을 겪고 있다.
+
+11일 경찰과 소방당국 설명을 들어보면, 경기소방재난본부 특수대응단 구조대원들은 이날 저녁 8시 현재 신안산선 공사장 붕괴 사고로 고립된 작업자 2명에 대한 구조 작업을 이어가고 있다. 이 가운데 1명은 구조대와 전화통화가 이뤄져 생존이 확인됐고, 1명은 연락이 닿지 않는 실종 상태다. 이중 전화 통화가 이뤄진 작업자 ㄱ씨에 대해 구조대원들은 실제 목소리가 들릴 정도로 가까운 곳에 접근했다고 한다. 다만 이 시각까지 ㄱ씨의 모습은 확인되지 않았고, 구조 작업도 쉽지 않은 상황인 걸로 전해졌다. 소방 관계자는 현장 브리핑에서 “구조 과정에 복합적인 어려움이 있다”며 “(사고현장)깊이가 30여m에 달하고, 중장비가 진입하기에 안전이 확보되지 않은 상황도 있다”고 설명했다.
+앞서 이날 오후 3시10분께 경기도 광명시 일직동 신안산선 공사 현장에서 상부 도로가 무너지는 사고가 벌어졌다. 붕괴 사고가 일어난 곳은 전날 밤 9시50분께 붕괴 우려 신고가 접수된 광명시 일직동 신안산선 복선전철 민간투자사업 제5-2공구 환기구 공사 현장이다. 당시 현장에선 ‘투아치'(2arch) 구조로 시공 중인 지하터널 내부의 가운데 기둥에 균열이 발생했다고 한다.
+붕괴 우려 신고 뒤 당시 근무하고 있던 인력은 대피하고, 경찰이 주변 도로 1㎞ 구간의 차량과 사람 통행을 모두 통제했다. 이후 긴급 안전진단 및 보강공사를 위한 점검을 진행하던 도중 실제 터널이 무너져 내렸다. 점검(계측)을 위해 나섰던 작업자 16명 가운데 14명은 대피하거나 구조됐다. 다만 지상에서 계측하던 ㄱ씨는 생존한 채로 고립돼 있는 것이 전화 통화로 확인됐고, 이 시각까지 1명은 연락이 닿지 않았다.
+이날 찾은 사고 현장은 터널 붕괴로 도로 전체가 무너지며 도로 주변 상가 건물들까지 내려앉는 등 처참한 모습이었다. 인근 주민들은 전날 밤부터 붕괴 우려가 컸던 상황에서, 위험성조차 제대로 전해 듣지 못했다고 분통을 터트렸다. 붕괴 지점에서 100여m 떨어진 곳에 산다는 장영준(28)씨는 “회사에 있다가 집 앞 도로가 무너졌단 얘기를 듣고 집에 강아지가 있어 달려왔다”며 “밤에 펑 소리가 났다고 하는데 못 들었고, 들었다고 해도 매일 공사를 하는 곳이니 그냥 시끄러운 소리인가보다 했을 것이다. (붕괴 조짐이 있다는) 아무 연락도 없고 알림도 없었다. 회사에 있지 않았다면 큰일 날 뻔 했다”고 가슴을 쓸어내렸다.
+무너진 도로 바로 옆에서 자동차 정비소를 운영하는 이병식(50)씨는 “지반이 주저앉으면서 지진이 난 것처럼 엄청난 소리가 들려 일단 직원하고 달려 나왔다”며 아찔했던 순간을 떠올렸다. 사고 현장 바로 옆 건물 2층에 사는 권주용(74)씨도 “누워있는데 쿵, 펑하는 소리가 나서 창문을 보니 공사장 천막이 쭉 내려가 있었다. 집이 엄청나게 흔들렸다”고 했다.
+
+광명시는 이날 사고 발생 뒤 사고 현장 주변 주민들에게 대피 명령을 내렸다. 박승원 광명시장은 이날 “2명의 구조를 위해 최선을 다하고 있다. 무엇보다 시민의 안전이 중요하기 때문에 인근 지역 아파트와 주택에 주민들 대피명령을 내렸고, 현재 각 학교와 시민 체육관에 이동하고 있다”고 설명했다. 홍건표 광명소방서 화재예방과장은 현장 브리핑에서 “2차 피해에 대비해 인근 푸르지오 아파트 642세대 2300여명을 시민체육관을 포함한 8곳으로 대피시켰다”고 밝혔다. 
+현재 주변 전기와 가스 등은 모두 차단된 상태다. 소방 관계자는 “현장 관계자 설명을 들어보면 추가 붕괴 위험은 없지만 정확하게 안전진단을 다시 한 번 실시하고 있다”고 덧붙였다.
+
+김가윤 기자 gayoon@hani.co.kr
+"""
+
+sentences = [s.strip() for s in re.split(r'(?<=[.?!])\s+', news_article.strip()) if s.strip()]
+
+for sentence in sentences:
+    encoded = tokenizer.encode_plus(sentence, max_length=128, truncation=True, padding='max_length', return_tensors="pt")
+    input_ids = encoded["input_ids"].unsqueeze(1).to(device)
+    attention_mask = encoded["attention_mask"].unsqueeze(1).to(device)
+    with torch.no_grad():
+        logits = model(input_ids, attention_mask=attention_mask)
+        probability = torch.sigmoid(logits)
+        prediction = (probability > 0.3).int()
+    logit_value = logits.item()
+    prob_value = probability.item()
+    pred_value = prediction.item()
+    print(sentence)
+    print(f"Logits: {logit_value:.4f}")
+    print(f"Probability: {prob_value:.4f}")
+    print(f"Prediction: {pred_value}")
