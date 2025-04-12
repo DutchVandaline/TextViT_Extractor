@@ -4,9 +4,10 @@ import torch
 from transformers import AutoTokenizer
 from Model.KoElectraExtractor import KoElectraExtractor
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 model = KoElectraExtractor().to(device)
-model_path = "../Checkpoints/best_kobert_f1.pt"
+model_path = "../Checkpoints/50percent_best_kobert_f1.pt"
 model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True))
 model.eval()
 tokenizer = AutoTokenizer.from_pretrained("monologg/koelectra-small-discriminator")
