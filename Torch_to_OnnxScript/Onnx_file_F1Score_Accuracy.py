@@ -9,7 +9,7 @@ from sklearn.metrics import accuracy_score, f1_score
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 TEST_CSV = "/home/junha/TextViT_Extractor/Datasets/test_dataset_10percent.csv"
-MAX_SEQ_LEN = 128
+MAX_SEQ_LEN = 256
 BATCH_SIZE = 256
 
 tokenizer = AutoTokenizer.from_pretrained("monologg/koelectra-small-discriminator")

@@ -7,9 +7,9 @@ model = KoElectraExtractor().to(device)
 model.load_state_dict(torch.load(r"C:\junha\Git\TextViT_Extractor\Checkpoints\50percent_best_kobert_f1.pt", map_location=device))
 model.eval()
 
-batch_size = 1
+batch_size = 256
 num_sentences = 1
-seq_len = 128
+seq_len = 256
 
 tokenizer = AutoTokenizer.from_pretrained("monologg/koelectra-small-discriminator")
 
@@ -18,10 +18,10 @@ dummy_attention = torch.ones((batch_size, num_sentences, seq_len), dtype=torch.l
 
 torch.onnx.export(
     model,
-    (dummy_input, dummy_attention),         # 모델에 전달할 입력 tuple
-    "koelectra_extractor.onnx",               # 저장할 ONNX 파일명
-    input_names=["input_ids", "attention_mask"],  # 입력 이름 지정
-    output_names=["logits"],                       # 출력 이름 지정
+    (dummy_input, dummy_attention),
+    "koelectra_extractor.onnx",
+    input_names=["input_ids", "attention_mask"],
+    output_names=["logits"],
     dynamic_axes={
         "input_ids": {0: "batch_size", 1: "num_sentences", 2: "seq_len"},
         "attention_mask": {0: "batch_size", 1: "num_sentences", 2: "seq_len"},
